@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Saqib's Engineering Agent IDE</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0b0f19; }
+        ::-webkit-scrollbar-thumb { background: #1f293d; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #374151; }
+        pre, code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important; }
+    </style>
+</head>
+<body class="bg-[#0b0f19] text-gray-100 font-sans h-[100dvh] flex flex-col justify-between overflow-hidden m-0 p-0 antialiased selection:bg-blue-500/30">
+
+    <header class="bg-[#111827] border-b border-gray-800/80 p-4 flex justify-between items-center shrink-0 shadow-lg relative z-20 backdrop-blur-md">
+        <div class="flex items-center gap-3">
+            <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-bold text-white shadow-md shadow-blue-900/30 text-sm">Σ</div>
+            <div>
+                <h1 class="text-sm font-semibold text-gray-100 tracking-wide flex items-center gap-2">
+                    Gemini Production Engine <span class="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full font-medium border border-blue-500/20">v2.5 SDK Native</span>
+                </h1>
+                <p class="text-[11px] text-gray-400">Core Software Developer Framework</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <button id="clearChatBtn" class="text-xs bg-gray-800/60 hover:bg-red-950/40 text-gray-400 hover:text-red-400 px-3 py-2 rounded-xl transition-all border border-gray-700/50 cursor-pointer flex items-center gap-1.5" title="Reset Session Architecture">
+                Clear Session
+            </button>
+            <button id="settingsBtn" class="text-xs bg-blue-600 hover:bg-blue-500 text-white font-medium px-4 py-2 rounded-xl transition-all shadow-lg shadow-blue-950/40 cursor-pointer flex items-center gap-1.5">
+                <span>⚙️</span> System Config
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 flex overflow-hidden relative bg-[#070a13]">
+        <section id="chatWindow" class="flex-1 overflow-y-auto p-4 space-y-6 scroll-smooth pb-6">
+            <div class="flex items-start gap-3 bg-[#111827]/40 p-5 rounded-2xl max-w-[85%] border border-gray-800/60 shadow-sm">
+                <div class="bg-gradient-to-tr from-blue-600 to-blue-500 p-2.5 rounded-xl text-xs shadow-md shadow-blue-900/10">🤖</div>
+                <div class="space-y-1">
+                    <p class="text-xs font-medium text-blue-400">Production Engine Baseline</p>
+                    <p class="text-sm leading-relaxed text-gray-300">Workspace initialized via Gemini 2.5 SDK Module layer. Native client routing enabled.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="settingsModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all">
+        <div class="bg-[#111827] border border-gray-800 p-6 rounded-2xl w-full max-w-md shadow-2xl relative">
+            <div class="mb-4">
+                <h2 class="text-lg font-semibold text-gray-100">API Gateway Configuration</h2>
+                <p class="text-xs text-gray-400 mt-1">Provide your verified Google AI Studio API access key token.</p>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[11px] font-medium text-gray-400 uppercase tracking-wider block mb-1.5">Secret Key Token</label>
+                    <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full bg-[#070a13] border border-gray-800 p-3 rounded-xl text-sm focus:outline-none focus:border-blue-500 text-white font-mono tracking-widest">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5 mt-6 border-t border-gray-800/80 pt-4">
+                <button id="closeSettingsBtn" class="px-4 py-2 bg-gray-800/80 hover:bg-gray-700 text-gray-300 rounded-xl text-xs font-medium transition-colors cursor-pointer">Discard</button>
+                <button id="saveSettingsBtn" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer shadow-md shadow-blue-900/20">Commit Key</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-[#111827] border-t border-gray-800/80 p-4 shrink-0 shadow-2xl relative z-10 bottom-0 sticky">
+        <form id="chatForm" class="flex gap-2.5 max-w-5xl mx-auto items-end">
+            <div class="flex-1 relative bg-[#070a13] border border-gray-800 rounded-xl transition-all focus-within:border-blue-500/80 shadow-inner">
+                <textarea id="userInput" rows="1" placeholder="Describe complete technical system requirement..." class="w-full bg-transparent p-3.5 pr-12 rounded-xl text-sm focus:outline-none text-gray-100 placeholder-gray-500 resize-none max-h-32 min-h-[46px] block leading-relaxed" required></textarea>
+            </div>
+            <button type="submit" id="sendBtn" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs px-5 h-[46px] rounded-xl transition-all flex items-center justify-center cursor-pointer shadow-lg shadow-blue-900/20 select-none tracking-wide shrink-0">
+                Execute
+            </button>
+        </form>
+    </footer>
+
+    <!-- Import Google's Official Gen AI SDK via modern ES Modules -->
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/generative-ai": "https://esm.run/@google/generative-ai"
+        }
+      }
+    </script>
+
+    <script type="module">
+        import { GoogleGenerativeAI } from '@google/generative-ai';
+
+        let apiKey = localStorage.getItem('gemini_agent_api_key') || '';
+        let chatHistory = [];
+        let internalBlockIdCounter = 0;
+        
+        const SYSTEM_INSTRUCTION = "CRITICAL METADATA: You are Saqib Zaheer Satti's personal software engineering agent. When he requests code or automation, you MUST output complete, production-ready, fully written A to Z code blocks without placeholders. Use strict markdown structures (html, css, javascript, python). Keep conversational text clean, and avoid reading code symbols or brackets in conversational prose responses.";
+
+        const chatWindow = document.getElementById('chatWindow');
+        const chatForm = document.getElementById('chatForm');
+        const userInput = document.getElementById('userInput');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsModal = document.getElementById('settingsModal');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+        const clearChatBtn = document.getElementById('clearChatBtn');
+
+        if (apiKey) apiKeyInput.value = apiKey;
+
+        settingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
+        closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
+        
+        saveSettingsBtn.addEventListener('click', () => {
+            const key = apiKeyInput.value.trim();
+            if (key) {
+                localStorage.setItem('gemini_agent_api_key', key);
+                apiKey = key;
+                settingsModal.classList.add('hidden');
+            }
+        });
+
+        clearChatBtn.addEventListener('click', () => {
+            if (confirm("Reset active architecture memory session?")) {
+                chatHistory = [];
+                chatWindow.innerHTML = `
+                    <div class="flex items-start gap-3 bg-[#111827]/40 p-5 rounded-2xl max-w-[85%] border border-gray-800/60 shadow-sm">
+                        <div class="bg-gradient-to-tr from-blue-600 to-blue-500 p-2.5 rounded-xl text-xs">🤖</div>
+                        <div class="space-y-1">
+                            <p class="text-xs font-medium text-blue-400">Production Engine Baseline</p>
+                            <p class="text-sm leading-relaxed text-gray-300">Memory purged. Structural node state re-initialized successfully.</p>
+                        </div>
+                    </div>`;
+            }
+        });
+
+        userInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        });
+
+        function cleanTextForSpeech(text) {
+            let clean = text.replace(/```[\s\S]*?```/g, ' [Code Component Attached] ');
+            clean = clean.replace(/[\{\}\[\]\(\)<>\/\*\_\`\#\\]/g, ' ');
+            return clean.replace(/\s+/g, ' ').trim();
+        }
+
+        function runTextToSpeech(rawOutput) {
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const narrationString = cleanTextForSpeech(rawOutput);
+            const utterance = new SpeechSynthesisUtterance(narrationString);
+            utterance.lang = 'en-US';
+            utterance.rate = 1.0;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function appendMessage(sender, text, isUser = false, rawResponseText = '') {
+            const container = document.createElement('div');
+            container.className = `flex flex-col gap-2.5 p-4 rounded-2xl max-w-[90%] border transition-all ${
+                isUser ? 'bg-blue-950/20 border-blue-900/30 ml-auto' : 'bg-[#111827]/60 border-gray-800/80 shadow-md'
+            }`;
+
+            const row = document.createElement('div');
+            row.className = `flex items-start gap-3.5 w-full ${isUser ? 'flex-row-reverse' : ''}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = `${isUser ? 'bg-blue-600 shadow-blue-900/20' : 'bg-gray-800 border border-gray-700/50'} p-2.5 rounded-xl text-xs shrink-0 shadow-sm select-none`;
+            avatar.innerText = isUser ? '👤' : '🤖';
+
+            const contentWrapper = document.createElement('div');
+            contentWrapper.className = 'w-full overflow-hidden';
+
+            const name = document.createElement('p');
+            name.className = `text-[11px] font-semibold tracking-wider uppercase mb-1.5 ${isUser ? 'text-right text-blue-400' : 'text-gray-400'}`;
+            name.innerText = isUser ? "Saqib Zaheer Satti" : sender;
+
+            const msgBody = document.createElement('div');
+            msgBody.className = 'text-sm leading-relaxed text-gray-200 w-full';
+
+            if (!isUser && rawResponseText.includes('```')) {
+                msgBody.appendChild(renderProfessionalCodeBlocks(rawResponseText));
+            } else {
+                const textParagraph = document.createElement('p');
+                textParagraph.className = "whitespace-pre-wrap break-words";
+                textParagraph.innerText = text;
+                msgBody.appendChild(textParagraph);
+            }
+
+            contentWrapper.appendChild(name);
+            contentWrapper.appendChild(msgBody);
+            row.appendChild(avatar);
+            row.appendChild(contentWrapper);
+            container.appendChild(row);
+
+            chatWindow.appendChild(container);
+            
+            setTimeout(() => {
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            }, 50);
+
+            if (!isUser) {
+                runTextToSpeech(rawResponseText || text);
+            }
+        }
+
+        function renderProfessionalCodeBlocks(text) {
+            const wrapper = document.createElement('div');
+            wrapper.className = "space-y-4 my-2 w-full text-gray-300";
+
+            const regex = /```(html|css|javascript|js|python|py)?([\s\S]*?)```/g;
+            let lastIndex = 0;
+            let match;
+
+            while ((match = regex.exec(text)) !== null) {
+                if (match.index > lastIndex) {
+                    const textNode = document.createElement('p');
+                    textNode.className = "whitespace-pre-wrap break-words mb-3 text-sm text-gray-300 leading-relaxed";
+                    textNode.innerText = text.substring(lastIndex, match.index).replace(/[\#\*\_`]/g, '').trim();
+                    if(textNode.innerText) wrapper.appendChild(textNode);
+                }
+
+                let lang = (match[1] || 'txt').toLowerCase();
+                let codeContent = match[2].trim();
+                internalBlockIdCounter++;
+                
+                let detectedFileName = `script_${internalBlockIdCounter}.py`;
+                if (lang === 'html') detectedFileName = 'index.html';
+                else if (lang === 'css') detectedFileName = 'style.css';
+                else if (lang === 'javascript' || lang === 'js') detectedFileName = 'app.js';
+                else if (lang === 'python' || lang === 'py') detectedFileName = 'main.py';
+
+                const ideCard = document.createElement('div');
+                ideCard.className = "border border-gray-800 rounded-xl overflow-hidden shadow-xl bg-[#090d16] w-full max-w-full block my-3";
+                
+                ideCard.innerHTML = `
+                    <div class="bg-[#111827] border-b border-gray-800/80 px-4 py-2.5 flex justify-between items-center select-none">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-500/70 block"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-yellow-500/70 block"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/70 block"></span>
+                            <span class="text-xs font-mono text-gray-400 ml-2 tracking-wide font-medium">${detectedFileName}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button class="text-[11px] bg-gray-800 hover:bg-gray-700 border border-gray-700/50 text-gray-300 px-2.5 py-1 rounded-md transition-all font-medium cursor-pointer" id="copy_btn_${internalBlockIdCounter}">Copy</button>
+                            <button class="text-[11px] bg-blue-600/20 hover:bg-blue-600 border border-blue-500/30 text-blue-400 hover:text-white px-2.5 py-1 rounded-md transition-all font-semibold cursor-pointer" id="export_btn_${internalBlockIdCounter}">Export File</button>
+                        </div>
+                    </div>
+                    <div class="p-4 overflow-x-auto max-w-full block bg-[#070a13]">
+                        <pre class="text-xs font-mono text-emerald-400/90 leading-relaxed whitespace-pre block tab-size-4 selection:bg-blue-500/40"><code>${codeContent}</code></pre>
+                    </div>
+                `;
+                
+                wrapper.appendChild(ideCard);
+
+                const currentCount = internalBlockIdCounter;
+                setTimeout(() => {
+                    document.getElementById(`copy_btn_${currentCount}`).addEventListener('click', function() {
+                        navigator.clipboard.writeText(codeContent);
+                        this.innerText = 'Copied!';
+                        setTimeout(() => this.innerText = 'Copy', 1500);
+                    });
+                    document.getElementById(`export_btn_${currentCount}`).addEventListener('click', function() {
+                        SaqibDirectFileExporter(detectedFileName, codeContent);
+                    });
+                }, 10);
+
+                lastIndex = regex.lastIndex;
+            }
+
+            if (lastIndex < text.length) {
+                const textNode = document.createElement('p');
+                textNode.className = "whitespace-pre-wrap break-words mt-3 text-sm text-gray-300 leading-relaxed";
+                textNode.innerText = text.substring(lastIndex).replace(/[\#\*\_`]/g, '').trim();
+                if(textNode.innerText) wrapper.appendChild(textNode);
+            }
+
+            return wrapper;
+        }
+
+        window.SaqibDirectFileExporter = function(filename, data) {
+            const blob = new Blob([data], { type: 'text/plain;charset=utf-8' });
+            const downloaderLinkNode = document.createElement('a');
+            downloaderLinkNode.href = URL.createObjectURL(blob);
+            downloaderLinkNode.download = filename;
+            document.body.appendChild(downloaderLinkNode);
+            downloaderLinkNode.click();
+            document.body.removeChild(downloaderLinkNode);
+        };
+
+        async function executeSDKTransaction(prompt) {
+            if (!apiKey) {
+                settingsModal.classList.remove('hidden');
+                throw new Error("Missing valid API key configuration. Open System Config to save it.");
+            }
+
+            // Fixed correct capitalization layer for browser client initialization
+            const aiInstance = new GoogleGenerativeAI(apiKey);
+            
+            let activeHistoryPayload = [];
+            if (chatHistory.length > 0) {
+                activeHistoryPayload = chatHistory.map(item => ({
+                    role: item.role === 'model' ? 'model' : 'user',
+                    parts: [{ text: item.parts[0].text }]
+                }));
+            }
+
+            const modelInstance = aiInstance.getGenerativeModel({ 
+                model: 'gemini-2.5-flash',
+                systemInstruction: SYSTEM_INSTRUCTION
+            });
+
+            const chatInstance = modelInstance.startChat({
+                history: activeHistoryPayload
+            });
+
+            const transactionResult = await chatInstance.sendMessage(prompt);
+            return transactionResult.response.text();
+        }
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const inputVal = userInput.value.trim();
+            if (!inputVal) return;
+
+            userInput.value = '';
+            userInput.style.height = 'auto';
+
+            appendMessage("Saqib", inputVal, true);
+
+            const loaderNode = document.createElement('div');
+            loaderNode.className = 'flex items-center gap-2 text-xs text-gray-500 font-mono tracking-wide p-2 pl-4 animate-pulse';
+            loaderNode.id = 'runtime_asynchronous_loader';
+            loaderNode.innerHTML = `<span class="h-2 w-2 rounded-full bg-blue-500 block animate-ping"></span> Compiling architecture matrices...`;
+            chatWindow.appendChild(loaderNode);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+
+            try {
+                const rawModelPayloadText = await executeSDKTransaction(inputVal);
+                const activeLoader = document.getElementById('runtime_asynchronous_loader');
+                if (activeLoader) activeLoader.remove();
+
+                appendMessage("Agent Core", '', false, rawModelPayloadText);
+
+                chatHistory.push({ role: "user", parts: [{ text: inputVal }] });
+                chatHistory.push({ role: "model", parts: [{ text: rawModelPayloadText }] });
+                if (chatHistory.length > 30) chatHistory = chatHistory.slice(-30);
+
+            } catch (err) {
+                const activeLoader = document.getElementById('runtime_asynchronous_loader');
+                if (activeLoader) activeLoader.remove();
+                appendMessage("Core System Exception", err.message, false);
+            }
+        });
+
+        userInput.addEventListener('focus', () => {
+            setTimeout(() => {
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            }, 300);
+        });
+    </script>
+</body>
+</html>
